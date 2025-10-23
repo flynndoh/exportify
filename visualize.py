@@ -67,6 +67,25 @@ def get_statistics():
     
     decade_distribution = [{'decade': decade, 'count': count} for decade, count in sorted(decades.items())]
     
+    # Calculate oldest and newest song years
+    valid_years = []
+    for song in data:
+        if song['album_release_date']:
+            try:
+                year = int(song['album_release_date'][:4])
+                if 1900 < year < 2030:
+                    valid_years.append(year)
+            except:
+                pass
+    
+    oldest_year = min(valid_years) if valid_years else None
+    newest_year = max(valid_years) if valid_years else None
+    year_range = newest_year - oldest_year if (oldest_year and newest_year) else 0
+    
+    # Find most popular song
+    most_popular_song = max(data, key=lambda x: x['popularity']) if data else None
+    max_popularity = most_popular_song['popularity'] if most_popular_song else 0
+    
     # Popularity distribution
     popularity_ranges = {
         '0-20': 0,
@@ -100,6 +119,10 @@ def get_statistics():
         'explicit_percentage': round((explicit_count / total_songs) * 100, 1) if total_songs > 0 else 0,
         'total_artists': len(artist_counts),
         'total_albums': len(album_counts),
+        'year_range': year_range,
+        'oldest_year': oldest_year,
+        'newest_year': newest_year,
+        'max_popularity': max_popularity,
         'top_artists': top_artists,
         'top_albums': top_albums,
         'decade_distribution': decade_distribution,
