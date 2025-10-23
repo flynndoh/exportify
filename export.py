@@ -62,11 +62,16 @@ def extract_song_metadata(track_item):
     """Extract relevant metadata from a track item."""
     track = track_item['track']
     
+    # Get album cover image URL (largest available)
+    album_images = track['album'].get('images', [])
+    album_cover_url = album_images[0]['url'] if album_images else 'N/A'
+    
     metadata = {
         'song_name': track['name'],
         'artist_names': ', '.join([artist['name'] for artist in track['artists']]),
         'album_name': track['album']['name'],
         'album_release_date': track['album']['release_date'],
+        'album_cover_url': album_cover_url,
         'duration_ms': track['duration_ms'],
         'duration_minutes': round(track['duration_ms'] / 60000, 2),
         'popularity': track['popularity'],

@@ -1,14 +1,12 @@
 from flask import Flask, jsonify, send_from_directory
 import json
 from collections import Counter
-from datetime import datetime
-import os
 
 app = Flask(__name__, static_folder='static')
 
 # Load Spotify data
 def load_spotify_data():
-    with open('spotify_liked_songs_20251023_233359.json', 'r', encoding='utf-8') as f:
+    with open('spotify_liked_songs_20251024_003115.json', 'r', encoding='utf-8') as f:
         return json.load(f)
 
 @app.route('/')
@@ -56,7 +54,6 @@ def get_statistics():
             year = song['album_release_date'][:4]
             years.append(year)
     
-    year_counts = Counter(years)
     decades = Counter()
     for year in years:
         try:
@@ -261,6 +258,36 @@ def get_graph_data():
             'error': str(e),
             'nodes': [],
             'links': []
+        }), 500
+
+@app.route('/api/top-songs-covers')
+def get_top_songs_covers():
+    """Return top 30 songs sorted by popularity with their cover images"""
+    try:
+        data = load_spotify_data()
+        
+        # Sort by popularity and get top 30
+        sorted_songs = sorted(data, key=lambda x: x.get('popularity', 0), reverse=True)[:30]
+        
+        covers = []
+        for song in sorted_songs:
+            cover_url = song.get('album_cover_url', '')
+            if cover_url and cover_url != 'N/A':
+                covers.append({
+                    'song_name': song.get('song_name', 'Unknown'),
+                    'artist_names': song.get('artist_names', 'Unknown'),
+                    'album_cover_url': cover_url,
+                    'popularity': song.get('popularity', 0)
+                })
+        
+        return jsonify(covers)
+    except Exception as e:
+        print(f"Error getting top songs covers: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'error': str(e),
+            'covers': []
         }), 500
 
 if __name__ == '__main__':

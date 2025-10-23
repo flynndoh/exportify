@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Library Visualizer</title>
+    <title>Exportify Library Visualizer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
@@ -26,7 +26,7 @@
         .cursor {
             width: 12px;
             height: 12px;
-            border: 2px solid #1DB954;
+            border: 2px solid #b9a91d;
             border-radius: 50%;
             position: fixed;
             pointer-events: none;
@@ -43,15 +43,16 @@
         /* Image Trail */
         .trail-image {
             position: fixed;
-            width: 120px;
+            width: 80px;
             height: 80px;
             pointer-events: none;
             z-index: 9999;
             opacity: 0;
             transition: opacity 0.3s ease-out;
-            border-radius: 4px;
+            border-radius: 8px;
             object-fit: cover;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            border: 2px solid #b9a91d;
         }
 
         .trail-image.visible {
@@ -92,8 +93,9 @@
             color: #fff;
         }
 
-        .spotify-accent {
-            color: #1DB954;
+        .exportify-accent {
+            /* color: #1DB954; */
+            color: #b9a91d;
         }
 
         .header-meta {
@@ -206,7 +208,7 @@
         }
 
         .stat-card:hover .stat-value {
-            color: #1DB954;
+            color: #b9a91d;
         }
 
         .stat-label {
@@ -243,7 +245,7 @@
 
         .search-box:focus {
             outline: none;
-            border-color: #1DB954;
+            border-color: #b9a91d;
             background: rgba(255, 255, 255, 0.04);
         }
 
@@ -274,7 +276,7 @@
         }
 
         .song-item:hover .song-info h3 {
-            color: #1DB954;
+            color: #b9a91d;
         }
 
         .song-meta {
@@ -290,7 +292,7 @@
         }
 
         .popularity-badge {
-            background: #1DB954;
+            background: #b9a91d;
             padding: 8px 18px;
             border-radius: 20px;
             font-weight: 600;
@@ -354,7 +356,7 @@
             background: transparent;
             width: auto;
             height: auto;
-            color: #1DB954;
+            color: #b9a91d;
             font-weight: 700;
             margin-right: 20px;
             font-size: 1.1em;
@@ -404,7 +406,7 @@
 
         .bar {
             height: 100%;
-            background: #1DB954;
+            background: #b9a91d;
             position: relative;
             display: flex;
             align-items: center;
@@ -473,9 +475,8 @@
 
     <header>
         <div class="header-content">
-            <h1><span class="spotify-accent">Spotify</span> Library</h1>
+            <h1><span class="exportify-accent">Exportify</span> Library</h1>
             <div class="header-meta">
-                <span>Music Visualizer</span>
                 <span>©2025</span>
             </div>
         </div>
@@ -534,30 +535,17 @@
     </div>
 
     <footer>
-        <p>Powered by Spotify API • Built with love for music</p>
+        <p>Powered by Spotify API • Built with love by Flynn</p>
     </footer>
 
     <script>
         let allSongs = [];
         let statistics = {};
-
-        // Stock images for cursor trail
-        const trailImages = [
-            'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300',
-            'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300',
-            'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300',
-            'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300',
-            'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300',
-            'https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=300',
-            'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=300',
-            'https://images.unsplash.com/photo-1446057032654-9d8885db76c6?w=300',
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
-            'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300'
-        ];
+        let trailImages = [];  // Will be populated with album covers
 
         let currentImageIndex = 0;
         let lastTrailTime = 0;
-        const trailDelay = 100;
+        const trailDelay = 50;
 
         // Custom cursor
         const cursor = document.querySelector('.cursor');
@@ -587,17 +575,19 @@
 
         // Image trail effect
         function showTrailImage(x, y) {
+            if (trailImages.length === 0) return;  // Don't show trail until covers are loaded
+            
             const trailElement = document.getElementById(`trail-${currentImageIndex % 5}`);
             const imageUrl = trailImages[Math.floor(Math.random() * trailImages.length)];
             
             trailElement.src = imageUrl;
-            trailElement.style.left = (x - 60) + 'px';
-            trailElement.style.top = (y - 40) + 'px';
+            trailElement.style.left = (x - 40) + 'px';  // Center the 60px image
+            trailElement.style.top = (y - 40) + 'px';   // Center the 60px image
             trailElement.classList.add('visible');
 
             setTimeout(() => {
                 trailElement.classList.remove('visible');
-            }, 800);
+            }, 400);
 
             currentImageIndex++;
         }
@@ -627,13 +617,19 @@
         // Load data
         async function loadData() {
             try {
-                const [songsResponse, statsResponse] = await Promise.all([
+                const [songsResponse, statsResponse, coversResponse] = await Promise.all([
                     fetch('/api/songs'),
-                    fetch('/api/statistics')
+                    fetch('/api/statistics'),
+                    fetch('/api/top-songs-covers')
                 ]);
 
                 allSongs = await songsResponse.json();
                 statistics = await statsResponse.json();
+                const topCovers = await coversResponse.json();
+                
+                // Extract cover URLs for cursor trail
+                trailImages = topCovers.map(song => song.album_cover_url);
+                console.log(`Loaded ${trailImages.length} album covers for cursor trail`);
 
                 renderOverview();
                 renderInsights();
