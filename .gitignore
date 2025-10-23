@@ -1,0 +1,37 @@
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Spotify cache
+.cache
+.cache-*
+
+# Output files
+spotify_liked_songs_*.json
+spotify_liked_songs_*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# exports
+.json
+.csv
